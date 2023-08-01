@@ -107,6 +107,14 @@ impl<X1, Y1> PointMixed<X1, Y1> {
     }
 }
 
+fn longest_string<'a>(string1: &'a str, string2: &'a str) -> &'a str {
+    if string1.len() >= string2.len() {
+        string1
+    } else {
+        string2
+    }
+}
+
 fn main() {
     let array = vec![];
     let max = match find_max(&array) {
@@ -230,4 +238,20 @@ fn main() {
     println!("\n");
     println!("{}", pair.to_string());  // Pair implements Display, so this is possible to do.
     println!("{}", 33.2.to_string());
+
+    println!("\n");
+    let string1 = String::from("abcd");
+    let string2 = "xyz";
+    let result = longest_string(string1.as_str(), string2);
+    println!("The longest string is: {}", result);
+
+    let string1 = String::from("a long string");
+    let result2;
+    {
+        let string2 = String::from("wxyz");
+        result2 = longest_string(string1.as_str(), string2.as_str());
+        println!("The longest string is: {}", result2);
+    }
+
+    println!("\n");
 }
