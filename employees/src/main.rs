@@ -1,19 +1,9 @@
+mod constants;
+
 use std::collections::{BTreeSet, HashMap};
 use std::io::stdin;
 
-// Commands
-const HELP: &str = "help";
-const ADD: &str = "add";
-const DEPT: &str = "dept";
-const DEPT_SORT: &str = "deptsort";
-const DEPTS: &str = "depts";
-const ALL: &str = "all";
-const ALL_BY_DEPT: &str = "allbydept";
-const ALL_UNIQUE_PER_DEPT: &str = "unique";
-const REMOVE: &str = "remove";
-const REMOVE_DEPT: &str = "removedept";
-const CLEAR: &str = "clear";
-const STOP: &str = "stop";
+use crate::constants::*;
 
 
 /// From [The Rust Book](https://rust-book.cs.brown.edu/ch08-03-hash-maps.html#summary):
@@ -95,7 +85,7 @@ fn add_employee(words: Vec<&str>, employees: &mut HashMap<String, Vec<String>>) 
         // These two variants are equivalent, and only work in case dept name consists of exactly one word.
         // This is kept only as an example, but not otherwise used.
         let _dept = words.last().unwrap_or(&"").to_owned();
-        let _dept = words[words.len() - 1];
+       let _dept = words[words.len() - 1];
     }
     let dept = words[to_pos+1..].join(" ").trim_matches(|c| c == '\'' || c == '\"').trim().to_string();
     let dept = employees.entry(dept).or_insert(Vec::new());
