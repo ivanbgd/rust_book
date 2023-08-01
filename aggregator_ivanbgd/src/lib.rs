@@ -1,3 +1,5 @@
+/// https://doc.rust-lang.org/book/ch10-02-traits.html
+
 use std::fmt::{self, Debug, Display, Formatter};
 
 pub trait Summary {
