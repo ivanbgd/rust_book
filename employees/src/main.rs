@@ -71,7 +71,8 @@ fn employees() {
 }
 
 fn help() {
-    println!("help add dept deptsort depts all allbydept unique remove removedept clear stop")
+    println!("{HELP} {ADD} {DEPT} {DEPT_SORT} {DEPTS} {ALL} {ALL_BY_DEPT} \
+    {ALL_UNIQUE_PER_DEPT} {REMOVE} {REMOVE_DEPT} {CLEAR} {STOP}");
 }
 
 /// **Add an employee to a department**
@@ -86,7 +87,7 @@ fn add_employee(words: Vec<&str>, employees: &mut HashMap<String, Vec<String>>) 
         return;
     }
 
-    let to_pos = words.iter().position(|&r| r == "to").unwrap();
+    let to_pos = words.iter().position(|&r| r == "to").expect("The ADD command must contain \"to\".");
 
     let name = words[1..to_pos].join(" ").trim_matches(|c| c == '\'' || c == '\"').trim().to_string();
 
@@ -264,7 +265,7 @@ fn print_all(employees: &HashMap<String, Vec<String>>) {
     println!("{underline}");
     for emp_dpt in all_employees.iter() {
         println!("{}, {}", emp_dpt.0, emp_dpt.1);
-   }
+    }
 }
 
 /// **Print all unique employees in department and their department, for all employees in the company,
@@ -312,7 +313,8 @@ fn remove_employee(words: &Vec<&str>, employees: &mut HashMap<String, Vec<String
         return;
     }
 
-    let from_pos = words.iter().position(|&r| r == "from").unwrap();
+    let from_pos = words.iter().position(|&r| r == "from").
+        expect("The REMOVE command must contain \"from\".");
 
     let name = words[1..from_pos].join(" ").trim_matches(|c| c == '\'' || c == '\"').trim().to_string();
 
