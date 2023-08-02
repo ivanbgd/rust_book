@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 
+use std::fmt::Display;
 use aggregator_ivanbgd::{NewsArticle, Summary, Tweet};
 use aggregator_ivanbgd::{notify, notify2, notify3, notify4, notify5, notify6};
 use aggregator_ivanbgd::{some_function1, some_function2};
@@ -112,6 +113,47 @@ fn longest_string<'a>(string1: &'a str, string2: &'a str) -> &'a str {
         string1
     } else {
         string2
+    }
+}
+
+#[derive(Debug)]
+struct ImportantExcerpt<'a> {
+    part: &'a str,
+}
+
+impl<'a> ImportantExcerpt<'a> {
+    fn level(&self) -> i32 {
+        3
+    }
+
+    fn announce_and_return_part(&self, announcement: &str) -> &str {
+        println!("Attention please: {}", announcement);
+        self.part
+    }
+}
+
+fn longest_with_an_announcement<'a, T>(x: &'a str, y: &'a str, ann: T) -> &'a str where T: Display {
+    println!("Announcement! {}", ann);
+    if x.len() >= y.len() {
+        x
+    } else {
+        y
+    }
+}
+
+fn longest_with_an_announcement2<'a, T>(
+    x: &'a str,
+    y: &'a str,
+    ann: T
+) -> &'a str
+where
+    T: Display,
+{
+    println!("Announcement! {}", ann);
+    if x.len() >= y.len() {
+        x
+    } else {
+        y
     }
 }
 
@@ -254,4 +296,22 @@ fn main() {
     }
 
     println!("\n");
+    let novel = String::from("Call me Ishmael. Some years ago...");
+    let first_sentence = novel.split('.').next().expect("Could not find a '.'.");
+    let important_excerpt = ImportantExcerpt {
+        part: first_sentence,
+    };
+    println!("important_excerpt: {:?}", important_excerpt);
+    println!("important_excerpt.level(): {}", important_excerpt.level());
+    println!("important_excerpt.announce_and_return_part(): {}",
+             important_excerpt.announce_and_return_part("Hi!"));
+
+    println!("\n");
+    let s1: &str = "I have a static lifetime.";
+    let s2: &'static str = "I have a static lifetime, too.";
+    println!("s1: {}\ns2: {}", s1, s2);
+
+    println!("\n");
+    let result = longest_with_an_announcement("abc", "1234", "Birthday!");
+    println!("The longest string is: {}", result);
 }
