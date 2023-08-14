@@ -10,22 +10,31 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("Not enough arguments. \
-            Pass <query> and <file path>, followed by optional 'i' or 'I' to ignore case.");
-        }
+    pub fn build(mut args: impl Iterator<Item = String> + ExactSizeIterator) -> Result<Config, &'static str> {
+        args.next();  // The first argument is the path of the executable (the name of the program).
 
-        let query = args[1].clone();
-        let file_path = args[2].clone();
+        let query = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a query string."),
+        };
+
+        let file_path = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file path string."),
+        };
+
+        let ignore_arg = match args.next() {
+            Some(arg) => arg.to_lowercase(),
+            None => String::from(""),
+        };
 
         // The env var takes precedence over the CLI argument, as it is checked last.
         // To have the CLI argument take precedence over the env var, reverse the order of the two checks.
         // The last value potentially overwrites the first value.
         let mut ignore_case = false;
-        if args.len() == 4 && args[3].to_lowercase() == "i" {
+        if ignore_arg == "i" {
             ignore_case = true;
-        } else if (args.len() == 3) || (args.len() == 4 && args[3].to_lowercase() != "i") {
+        } else if (ignore_arg == String::from("")) || (ignore_arg != "i") {
             ignore_case = false;
         }
         if env::var("IGNORE_CASE").is_ok() {
@@ -65,29 +74,19 @@ fn read_file(file_path: &str) -> Result<String, Box<dyn Error>> {
 /// or to count the line only once.
 /// The current implementation counts such a line only once.
 fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut matching_lines = Vec::new();
-
-    for line in contents.lines() {
-        if line.contains(query) {
-            matching_lines.push(line);
-        }
-    }
-
-    matching_lines
+    contents
+        .lines()
+        .filter(|line| line.contains(query))
+        .collect()
 }
 
 fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut matching_lines = Vec::new();
-
     let query = &query.to_lowercase();
 
-    for line in contents.lines() {
-        if line.to_lowercase().contains(query) {
-            matching_lines.push(line);
-        }
-    }
-
-    matching_lines
+    contents
+        .lines()
+        .filter(|line| line.to_lowercase().contains(query))
+        .collect()
 }
 
 #[cfg(test)]
