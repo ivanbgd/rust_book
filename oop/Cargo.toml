@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+    "oop",
+    "averaged_collection",
+    "blog_oop",
+    "blog_rust",
+    "gui",
+]

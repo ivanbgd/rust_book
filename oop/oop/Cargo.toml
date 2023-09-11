@@ -1,0 +1,12 @@
+[package]
+name = "oop"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+averaged_collection = { path = "../averaged_collection" }
+blog_oop = { path = "../blog_oop" }
+blog_rust = { path = "../blog_rust" }
+gui = { path = "../gui" }
