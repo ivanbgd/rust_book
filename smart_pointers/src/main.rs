@@ -316,7 +316,7 @@ use std::rc::Weak;
 struct Node {
     value: i32,
     parent: RefCell<Weak<Node>>,
-   children: RefCell<Vec<Rc<Node>>>,
+    children: RefCell<Vec<Rc<Node>>>,
 }
 
 impl Display for Node {
@@ -443,7 +443,7 @@ fn tree2() {
         children: RefCell::new(vec![]),
     });
 
-   println!("leaf's strong and weak counts: {}, {}", Rc::strong_count(&leaf), Rc::weak_count(&leaf));  // 1, 0
+    println!("leaf's strong and weak counts: {}, {}", Rc::strong_count(&leaf), Rc::weak_count(&leaf));  // 1, 0
     println!("leaf's parent = {:?}", leaf.parent.borrow().upgrade());  // leaf's parent = None  // We can't unwrap() None.
     println!();
 
