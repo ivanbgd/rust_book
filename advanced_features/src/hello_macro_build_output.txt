@@ -1,0 +1,10 @@
+input:
+struct Pancakes ;
+input:
+TokenStream [Ident { ident: "struct", span: #0 bytes(12316..12322) }, Ident { ident: "Pancakes", span: #0 bytes(12323..12331) }, Punct { ch: ';', spacing: Alone, span: #0 bytes(12331..12332) }]
+name:
+Ident { ident: "Pancakes", span: #0 bytes(12323..12331) }
+name:
+Pancakes
+gen_into:
+TokenStream [Ident { ident: "impl", span: #210 bytes(12299..12309) }, Ident { ident: "HelloMacro", span: #210 bytes(12299..12309) }, Ident { ident: "for", span: #210 bytes(12299..12309) }, Ident { ident: "Pancakes", span: #0 bytes(12323..12331) }, Group { delimiter: Brace, stream: TokenStream [Ident { ident: "fn", span: #210 bytes(12299..12309) }, Ident { ident: "hello_macro", span: #210 bytes(12299..12309) }, Group { delimiter: Parenthesis, stream: TokenStream [], span: #210 bytes(12299..12309) }, Group { delimiter: Brace, stream: TokenStream [Ident { ident: "println", span: #210 bytes(12299..12309) }, Punct { ch: '!', spacing: Alone, span: #210 bytes(12299..12309) }, Group { delimiter: Parenthesis, stream: TokenStream [Literal { kind: Str, symbol: "Hello, Macro! My name is {}!", suffix: None, span: #210 bytes(12299..12309) }, Punct { ch: ',', spacing: Alone, span: #210 bytes(12299..12309) }, Ident { ident: "stringify", span: #210 bytes(12299..12309) }, Punct { ch: '!', spacing: Alone, span: #210 bytes(12299..12309) }, Group { delimiter: Parenthesis, stream: TokenStream [Ident { ident: "Pancakes", span: #0 bytes(12323..12331) }], span: #210 bytes(12299..12309) }], span: #210 bytes(12299..12309) }, Punct { ch: ';', spacing: Alone, span: #210 bytes(12299..12309) }], span: #210 bytes(12299..12309) }], span: #210 bytes(12299..12309) }]
