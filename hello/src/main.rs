@@ -1,3 +1,5 @@
+//! A basic web server that uses a thread pool to respond asynchronously to client requests
+
 mod constants;
 
 use std::{
@@ -12,11 +14,16 @@ use constants::*;
 use hello::create_pool;
 
 fn main() {
+    println!("Starting the server...");
+
     let listener = TcpListener::bind(ADDRESS)
         .expect(format!("Expected to bind TcpListener to '{}'.", ADDRESS).as_ref());
 
     let pool = create_pool(NUM_CPU);
 
+    println!("Waiting for requests...\n");
+
+    // Practically an infinite loop, waiting for and serving client requests
     for stream in listener.incoming() {
         let stream = stream.expect("Expected a TcpStream.");
 
@@ -24,6 +31,8 @@ fn main() {
             handle_connection(stream);
         });
     }
+
+    println!("  Shutting down the server (the main thread).");
 }
 
 fn handle_connection(mut stream: TcpStream) {
@@ -49,6 +58,7 @@ fn handle_connection(mut stream: TcpStream) {
     let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
 
     stream.write_all(response.as_bytes()).expect("Expected to write to stream.");
+    stream.flush().expect("Expected to flush stream.");
 }
 
 fn sleep(secs: u64) {

@@ -53,8 +53,10 @@ pub fn create_pool(size: usize) -> ThreadPool {
 /// but we are practicing, so we have both.
 pub struct ThreadPool {
     workers: Vec<Worker>,
-    sender: mpsc::Sender<Job>,
+    sender: Option<mpsc::Sender<Job>>,
 }
+
+type Job = Box<dyn FnOnce() -> () + Send + 'static>;
 
 impl ThreadPool {
 
@@ -88,7 +90,9 @@ impl ThreadPool {
     {
         let job = Box::new(f);
 
-        self.sender.send(job).expect("Expected to send a job.");
+        self.sender
+            .as_ref().expect("Expected to extract sender from Some.")
+            .send(job).expect("Expected to send a job.");
     }
 
     fn create_threads(size: usize) -> ThreadPool {
@@ -104,7 +108,77 @@ impl ThreadPool {
             workers.push(Worker::new(id, Arc::clone(&receiver)));
         }
 
-        ThreadPool { workers, sender }
+        ThreadPool {
+            workers,
+            sender: Some(sender),
+        }
+    }
+}
+
+impl Drop for ThreadPool {
+    fn drop(&mut self) {
+        // Drop sender explicitly before joining the worker threads.
+        // This closes the channel at the sender's end and consequently overall.
+        drop(self.sender.take());
+
+        for worker in &mut self.workers {
+            println!(" Shutting down worker {}.", worker.id);
+
+            if let Some(thread) = worker.thread.take() {
+                thread.join().expect("Expected to join the worker's thread.");
+            }
+        }
+    }
+}
+
+struct Worker {
+    id: usize,
+    thread: Option<thread::JoinHandle<()>>,
+}
+
+impl Worker {
+    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+        let builder = thread::Builder::new();
+
+        // A thread loops forever waiting for jobs, but we have implemented a graceful shutdown.
+        // If recv() returns an error, we break out of the loop in a graceful manner.
+        // This will happen when the sender is dropped, as that will close the channel.
+        // Only after that can threads be joined in a regular way. They couldn't be joined
+        // if they were looping infinitely, but we are breaking out of the loop when the
+        // channel is closed, so threads can be shut down gracefully.
+        let handler_result = builder.spawn(move || {
+            loop {
+                let message =
+                    receiver.lock().expect("Expected receiver to acquire the lock.").recv();
+
+                match message {
+                    Ok(job) => {
+                        println!("Worker {id} got a job; executing.");
+                        job();
+                    },
+                    Err(_) => {
+                        println!("  Worker {id} disconnected; shutting down.");
+                        break;
+                    }
+                }
+            }
+        });
+
+        // This is the same behavior that `thread::spawn()` has, so we haven't accomplished
+        // anything by using a `thread::Builder` instead here, in this case.
+        // Still, we can use this as a placeholder for future improvements.
+        // Concretely, the `Err` arm's output can be improved, to handle an OS error in a better way.
+        // We can, for example, try to recover, instead of crashing the program.
+        // The program should (potentially) be able to continue working even if OS can't spawn a thread.
+        let thread = match handler_result {
+            Ok(thread) => thread,
+            Err(error) => panic!("Worker error; the OS couldn't spawn a new worker: {}", error),
+        };
+
+        Worker {
+            id,
+            thread: Some(thread),
+        }
     }
 }
 
@@ -122,41 +196,6 @@ impl Display for PoolCreationError {
         write!(f, "{}: {}", type_name::<PoolCreationError>(), ERROR_POOL_CREATION)
     }
 }
-
-struct Worker {
-    id: usize,
-    thread: thread::JoinHandle<()>,
-}
-
-impl Worker {
-    fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
-        let builder = thread::Builder::new();
-        let handler_result = builder.spawn(move || loop {
-            let job = receiver
-                .lock().expect("Expected receiver to acquire the lock.")
-                .recv().expect("Expected receiver to receive a message.");
-
-            eprintln!(" Worker {id} got a job; executing.");
-
-            job();
-        });
-
-        // This is the same behavior that `thread::spawn()` has, so we haven't accomplished
-        // anything by using a `thread::Builder` instead here, in this case.
-        // Still, we can use this as a placeholder for future improvements.
-        // Concretely, the `Err` arm's output can be improved, to handle an OS error in a better way.
-        // We can, for example, try to recover, instead of crashing the  program.
-        // The program should be able to continue working.
-        let thread = match handler_result {
-            Ok(thr) => thr,
-            Err(err) => panic!("Worker error; the OS couldn't spawn a new worker: {}", err),
-        };
-
-        Worker { id, thread }
-    }
-}
-
-type Job = Box<dyn FnOnce() -> () + Send + 'static>;
 
 #[cfg(test)]
 mod tests {
