@@ -1,3 +1,10 @@
+//! The `ThreadPool` library
+//!
+//! This library can be used to create a pool of threads.
+//!
+//! The pool can be used in a web server, as with our example here,
+//! but also for other purposes.
+
 mod error_consts;
 
 use std::any::type_name;
@@ -51,11 +58,15 @@ pub fn create_pool(size: usize) -> ThreadPool {
 ///
 /// Only one of `new()` or `build()` functions is necessary,
 /// but we are practicing, so we have both.
+///
+/// Contains a vector of workers and a sender which sends tasks
+/// to workers down the channel.
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: Option<mpsc::Sender<Job>>,
 }
 
+/// The type of job that threads in the pool execute
 type Job = Box<dyn FnOnce() -> () + Send + 'static>;
 
 impl ThreadPool {
@@ -84,6 +95,9 @@ impl ThreadPool {
         Ok(Self::create_threads(size))
     }
 
+    /// Take a job and execute it
+    ///
+    /// Sends the job to a worker down the channel.
     pub fn execute<F>(&self, f: F)
     where
         F: FnOnce() -> () + Send + 'static,
@@ -95,6 +109,7 @@ impl ThreadPool {
             .send(job).expect("Expected to send a job.");
     }
 
+    /// Inner function with functionality that is common to `new` and `build`
     fn create_threads(size: usize) -> ThreadPool {
         let (sender, receiver) = mpsc::channel();
 
@@ -116,8 +131,12 @@ impl ThreadPool {
 }
 
 impl Drop for ThreadPool {
+    /// Used for graceful shutdown of worker threads
+    ///
+    /// We don't call it explicitly.
+    /// It's called implicitly when `ThreadPool` goes out of scope.
     fn drop(&mut self) {
-        // Drop sender explicitly before joining the worker threads.
+        // Drop sender explicitly before joining the worker threads
         // This closes the channel at the sender's end and consequently overall.
         drop(self.sender.take());
 
@@ -131,12 +150,17 @@ impl Drop for ThreadPool {
     }
 }
 
+/// A worker thread
 struct Worker {
     id: usize,
     thread: Option<thread::JoinHandle<()>>,
 }
 
 impl Worker {
+    /// Create a new worker thread
+    ///
+    /// Takes the worker's ID and a channel receiver through which it
+    /// receives jobs that it needs to execute.
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
         let builder = thread::Builder::new();
 
