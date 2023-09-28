@@ -40,7 +40,43 @@ fn main() {
     println!("  Shutting down the server (the main thread).");
 }
 
+/// Seems to be more stable than the original implementation, which can be found below.
 fn handle_connection(mut stream: TcpStream) {
+    let mut buffer = [0; 1024];
+    stream.read(&mut buffer).expect("Expected to read into buffer.");
+
+    let (status_line, filename) = if buffer.starts_with(GET_ROOT_URI.as_ref()) {
+        (STATUS_200_OK, HELLO_HTML)
+    } else if buffer.starts_with(GET_SLEEP_URI.as_ref()) {
+        sleep(SLEEP_SECS);
+        (STATUS_200_OK, SLEEP_HTML)
+    } else {
+        (STATUS_404_NOT_FOUND, NOT_FOUND_404_HTML)
+    };
+
+    let contents = fs::read_to_string(filename)
+        .expect(format!("Expected to read '{}'.", filename).as_ref());
+    let length = contents.len();
+
+    let response = format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
+
+    stream.write_all(response.as_bytes()).expect("Expected to write to stream.");
+    stream.flush().expect("Expected to flush stream.");
+}
+
+fn sleep(secs: u64) {
+    // TODO: Implement counting down every second on the "sleep_counter" page that refreshes every second.
+    // TODO: At the end, use the regular "sleep" page; this is currently used in handle_connection() anyway.
+    thread::sleep(Duration::from_secs(secs));
+}
+
+/// The original implementation.
+/// Not stable. Threads seem to panic.
+/// This happens with multiple successive refreshes of a root (hello) or a not-found page
+/// when the sleep page is running (sleeping).
+///
+/// `thread '<unnamed>' panicked at 'Expected to read request line from buffer.', src\main.rs:83:10`
+fn _handle_connection_original(mut stream: TcpStream) {
     let buf_reader = BufReader::new(&mut stream);
 
     let request_line = buf_reader.lines().next()
@@ -64,12 +100,6 @@ fn handle_connection(mut stream: TcpStream) {
 
     stream.write_all(response.as_bytes()).expect("Expected to write to stream.");
     stream.flush().expect("Expected to flush stream.");
-}
-
-fn sleep(secs: u64) {
-    // TODO: Implement counting down every second on the "sleep_counter" page that refreshes every second.
-    // TODO: At the end, use the regular "sleep" page; this is currently used in handle_connection() anyway.
-    thread::sleep(Duration::from_secs(secs));
 }
 
 /// This is for debugging purposes only.
