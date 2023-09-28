@@ -260,4 +260,11 @@ mod tests {
         let pool = pool_result.unwrap();
         assert_eq!(NUM_CPU_TEST, pool.workers.len());
     }
+
+    #[test]
+    fn test_execute() {
+        let pool = ThreadPool::new(NUM_CPU_TEST);
+
+        pool.execute(|| {});
+    }
 }
