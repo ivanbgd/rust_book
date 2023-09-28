@@ -1,4 +1,9 @@
 //! A basic web server that uses a thread pool to respond asynchronously to client requests
+//!
+//! URLs for testing:
+//! - http://127.0.0.1:7878/
+//! - http://127.0.0.1:7878/sleep
+//! - http://127.0.0.1:7878/foo
 
 mod constants;
 
