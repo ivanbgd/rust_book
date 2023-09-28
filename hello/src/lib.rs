@@ -144,7 +144,7 @@ impl Drop for ThreadPool {
             println!(" Shutting down worker {}.", worker.id);
 
             if let Some(thread) = worker.thread.take() {
-                thread.join().expect("Expected to join the worker's thread.");
+                thread.join().expect(format!("Expected to join the worker's {} thread.", worker.id).as_ref());
             }
         }
     }
@@ -173,7 +173,9 @@ impl Worker {
         let handler_result = builder.spawn(move || {
             loop {
                 let message =
-                    receiver.lock().expect("Expected receiver to acquire the lock.").recv();
+                    receiver.lock()
+                        .expect(format!("Expected receiver for worker {} to acquire the lock.", id).as_ref())
+                        .recv();
 
                 match message {
                     Ok(job) => {
