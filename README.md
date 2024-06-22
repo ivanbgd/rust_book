@@ -3,3 +3,5 @@
 https://doc.rust-lang.org/book/ (from https://www.rust-lang.org/learn)
 
 Contains some practical work/exercise.
+
+- [hello](https://github.com/ivanbgd/rust_book/tree/main/hello) is a web server implementation.
